@@ -166,15 +166,15 @@ class Superfish:
         
         return FM        
         
-    def interpolate(self, zmin=-1000, zmax=1000, nz=100, rmin=0, rmax=0, nr=1):
+    def interpolate(self, x1min=-1000, x1max=1000, nx1=100, x2min=0, x2max=0, nx2=1):
         """
         Interpolates field over a grid. 
         """
     
         t7data = interpolate2d(
             self,
-            zmin=zmin, zmax=zmax, nz=nz,
-            rmin=rmin, rmax=rmax, nr=nr
+            x1min=x1min, x1max=x1max, nx1=nx1,
+            x2min=x2min, x2max=x2max, nx2=nx2
         )
         
         return t7data
@@ -297,11 +297,13 @@ class Superfish:
         basename = os.path.splitext(fname)[0].upper()
         self.input = dict(basename=basename)
 
-        self.input['automesh'] = parsers.parse_automesh(f)  
+        with open(f, 'r') as fid:
+            self.input['automesh'] = fid.readlines()
 
+        # Look for key word in automesh file that turns on cylindrical symmetry
         self.input['geometry'] = None
-        for line in self.input:
-            if 'icylind=1' in line.replace(' ', ''):
+        for line in self.input['automesh']:
+            if 'icylin=1' in line.replace(' ', ''):
                 self.input['geometry'] = 'cylindrical'
         if self.input['geometry'] is None:
             self.input['geometry'] = 'rectangular'
@@ -317,7 +319,7 @@ class Superfish:
         sfofile = os.path.join(self.path, self.basename+'.SFO')
         
         if not os.path.exists(sfofile):
-            self.vprint('Warking: no SFO file to load.')
+            self.vprint('Warning: no SFO file to load.')
             return
         
         self.output['sfo'] = parsers.parse_sfo(sfofile)

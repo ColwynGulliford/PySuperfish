@@ -80,9 +80,17 @@ def add_wall_segment_to_axes(seg, ax, perp_scale=0, max_field=1, field='E', cmap
     conv is the unit conversion factor used by Superfish. 
     
     """
-    # This only works for cylindrical geometry
-    x = seg['wall']['Z']*conv
-    y = seg['wall']['R']*conv
+
+    # Make sure coordinates in segment make sense
+    assert ('X' in seg['wall'] and 'Y' in seg['wall']) or ('Z' in seg['wall'] and 'R' in seg['wall']), 'unknown coordinates in wall segments'
+
+    if 'X' in seg['wall'] and 'Y' in seg['wall']:  # Rectangular geometry
+        x = seg['wall']['X']*conv
+        y = seg['wall']['Y']*conv
+        
+    else:  # Cylindrical geometry
+        x = seg['wall']['Z']*conv
+        y = seg['wall']['R']*conv
 
     # Wall segment
     ax.plot(x, y, color='black')
@@ -137,7 +145,16 @@ def plot_wall(wall_segments,
         max_field = np.array([seg['wall'][field].max() for seg in wall_segments]).max()
     else:
         max_field = 0
-    
+
+    # Get coordinate labels:
+    seg0 = wall_segments[0]
+    if 'X' in seg0['wall'] and 'Y' in seg0['wall']:  # Rectangular geometry
+        x_label='x'
+        y_label='y'
+    elif 'Z' in seg0['wall'] and 'R' in seg0['wall']:
+        x_label='z'
+        y_label='r'
+
     for seg in wall_segments:
         add_wall_segment_to_axes(seg, ax, perp_scale=perp_scale,
                                  field=field,
@@ -147,14 +164,17 @@ def plot_wall(wall_segments,
     # Labels and units
     units = wall_segments[0]['units']
 
+    
+    
+
     ax.set_aspect('equal')
     if conv == 1:
-        ax.set_xlabel('z '+units['Z'])
-        ax.set_ylabel('r '+units['R'])  
+        ax.set_xlabel(f'{x_label} {units[x_label.upper()]}')
+        ax.set_ylabel(f'{y_label} {units[y_label.upper()]}')  
         
     else:
-        ax.set_xlabel('z (cm)')
-        ax.set_ylabel('r (cm)')    
+        ax.set_xlabel(f'{x_label} (cm)')
+        ax.set_ylabel(f'{y_label} (cm)')    
     
     
     if perp_scale == 0:
