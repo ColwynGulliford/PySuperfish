@@ -80,7 +80,7 @@ def add_wall_segment_to_axes(seg, ax, perp_scale=0, max_field=1, field='E', cmap
     conv is the unit conversion factor used by Superfish. 
     
     """
-    
+    # This only works for cylindrical geometry
     x = seg['wall']['Z']*conv
     y = seg['wall']['R']*conv
 

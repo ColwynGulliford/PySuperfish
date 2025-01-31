@@ -221,7 +221,9 @@ def parse_poisson_t7(t7file, type='electric', geometry='cylindrical'):
     
     
     """
-    assert geometry == 'cylindrical', 'TODO: other geometries'
+    #assert geometry == 'cylindrical', 'TODO: other geometries'
+
+    print('geometry ->', geometry)
 
     if type == 'electric':
         labels = 'Er', 'Ez'

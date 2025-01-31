@@ -299,6 +299,14 @@ class Superfish:
 
         self.input['automesh'] = parsers.parse_automesh(f)  
 
+        self.input['geometry'] = None
+        for line in self.input:
+            if 'icylind=1' in line.replace(' ', ''):
+                self.input['geometry'] = 'cylindrical'
+        if self.input['geometry'] is None:
+            self.input['geometry'] = 'rectangular'
+         
+    
     def load_output(self):
         """
         Loads SFO output file
@@ -346,4 +354,8 @@ class Superfish:
         if self.configured:
             return f'<Superfish configured to run in {self.path}>' 
         
-        return f'<Superfish at {memloc}>'        
+        return f'<Superfish at {memloc}>'    
+
+    @property
+    def geometry(self):
+        return self.input['geometry']
