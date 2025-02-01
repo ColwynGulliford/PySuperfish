@@ -6,6 +6,7 @@ import numpy as np
 
 from glob import glob
 import os
+import re
 
 
 def get_t7(path):
@@ -41,10 +42,10 @@ def interpolate2d(sf,
                                        return_fieldmesh=return_fieldmesh)
         
     elif sf.geometry == 'rectangular':
-        interpolate_xy(sf, 
-                   xmin=x1min, xmax=x1max, nx=nx1,
-                   ymin=x2max, ymax=x2max, ny=nx2,
-                   return_fieldmesh=False)
+        return interpolate_xy(sf, 
+                              xmin=x1min, xmax=x1max, nx=nx1,
+                              ymin=x2min, ymax=x2max, ny=nx2,
+                              return_fieldmesh=return_fieldmesh)
 
         
     
@@ -65,8 +66,8 @@ def interpolate_xy(sf,
 End"""
         
     elif problem == 'poisson':
-        F=f"""
-{ymin} {xmin} {ymax} {xmax}
+        F=f"""Grid
+{xmin} {ymin} {xmax} {ymax}
 {ny-1} {nx-1}
 End"""
     else:
@@ -95,8 +96,49 @@ Force1MVperMeter=No""")
     # Run
     sf.run_cmd('sf7', ifile, t35file)
 
-    return # Right now just run
-    
+    outsf7_file = os.path.join(sf.path, 'OUTSF7.txt')
+
+    with open(outsf7_file, 'r') as fid:
+        sf7_text = fid.read()
+
+    lines = sf7_text.split('\n')
+
+    xmin, ymin, xmax, ymax, x_inc, y_inc = None, None, None, None, None, None
+
+    for ii, line in enumerate(lines):
+
+        if line.strip().startswith('(Xmin,Ymin)'):
+            min_tokens = line.split('=')[1].replace('(', '').replace(')', '').split(',')
+            xmin, ymin = float(min_tokens[0]), float(min_tokens[1])
+
+        if line.strip().startswith('(Xmax,Ymax)'):
+            max_tokens = line.split('=')[1].replace('(', '').replace(')', '').split(',')
+            xmax, ymax = float(max_tokens[0]), float(max_tokens[1])
+
+        if line.strip().startswith('X and Y increments:'):
+            inc_tokens = line.split(':')[1].split()
+            x_inc, y_inc = int(inc_tokens[0]), int(inc_tokens[1])
+
+            index = ii
+            break
+
+    columns = lines[index+2].split()
+    units = lines[index+3].split()
+
+    data = np.loadtxt(outsf7_file, comments='#', skiprows=index+4)
+
+    nx, ny = x_inc+1, y_inc+1
+
+    Ex = data[:, columns.index('Ex')].reshape(nx, ny, order='F').T
+    Ey = data[:, columns.index('Ey')].reshape(nx, ny, order='F').T
+
+    dat = {'geometry': sf.geometry, 'problem': sf.problem, 
+           'xmin': xmin, 'xmax': xmax, 'nx': x_inc+1, 'Ex': Ex,
+           'ymin': ymin, 'ymax': ymax, 'ny': y_inc+1, 'Ey': Ey}
+
+    return dat
+
+    """
     # Get the filename
     t7file = get_t7(sf.path)
     assert len(t7file) == 1, f'T7 file is missing.'
@@ -130,7 +172,7 @@ Force1MVperMeter=No""")
         d =  parse_poisson_t7(t7file, 'cylindrical', type=type)
     
     return d
-
+    """
 
 def interpolate_cylindrical(sf,
                   zmin=-1000, zmax=1000, nz=100,
@@ -232,7 +274,7 @@ Force1MVperMeter=No""")
         else:
             type = 'magnetic'
         d =  parse_poisson_t7(t7file, 'cylindrical', type=type)
-    
+    print(d)
     return d
 
     

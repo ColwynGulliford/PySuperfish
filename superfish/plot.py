@@ -36,6 +36,23 @@ def add_t7data_to_axes(t7data, ax, field='E', cmap=None, vmin=1e-19, scale=1):
     
     return ax
 
+def add_sf7_data_to_axes(sf7_data, ax, field='E', cmap=None, vmin=1e-19, scale=1):
+
+    extent = [sf7_data[k]*scale for k in ('xmin', 'xmax', 'ymin', 'ymax')]
+
+    if not cmap:
+        cmap = CMAP0
+        
+    if field in ('E', 'B') and field not in sf7_data:
+        data = np.hypot(sf7_data[field+'x'], sf7_data[field+'y'])
+    else:
+        data = sf7_data[field]
+        
+    
+    ax.imshow(np.flipud(data), extent=extent, cmap=cmap, vmin=vmin )
+    
+    return ax
+
 
 
 
