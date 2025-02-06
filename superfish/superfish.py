@@ -116,14 +116,11 @@ class Superfish:
         self.configured = True  
 
     def fieldmesh(self, 
-                  zmin=-100, 
-                  zmax=100, 
-                  nz=0,
-                  dz=0,
-                  rmin=0, 
-                  rmax=100, 
-                  nr=0,
-                  dr=0):
+                  zmin=-100, zmax=100, nz=0, dz=0,
+                  rmin=0, rmax=100, nr=0, dr=0,
+                  xmin=-100, xmax=100, nx=0, dx=0,
+                  ymin=0, ymax=100, ny=0, dy=0
+                 ):
         """
         Interpolates field over a grid. Similar to .interpolate, 
         but input units are in meters. 
@@ -137,47 +134,93 @@ class Superfish:
     
         conv = self.param('CONV')
         fac = 100/conv
-        
-        # Various input possibilities for the grid
-        if dz and nz:
-            zmax = zmin + (nz-1)*dz
-        elif dz and not nz:
-            nz = int((zmax-zmin)/dz)+1
-            zmax = zmin + (nz-1)*dz
-        elif not dz and not nz:
-            # Default
-            nz = 100
-            
-        if dr and nr:
-            rmax = rmin + (nr-1)*dr
-        elif dr and not nr:
-            nr = int((rmax-rmin)/dr)+1
-            rmax = rmin + (nr-1)*dr           
-        elif not dr and not nr:
-            # Default
-            nr = 100
 
-        FM = interpolate2d(
-            self,
-            zmin=zmin*fac, zmax=zmax*fac, nz=nz,
-            rmin=rmin*fac, rmax=rmax*fac, nr=nr,
-            return_fieldmesh=True
-        )
+        if self.geometry == 'cylindrical':
+            # Various input possibilities for the grid
+            if dz and nz:
+                zmax = zmin + (nz-1)*dz
+            elif dz and not nz:
+                nz = int((zmax-zmin)/dz)+1
+                zmax = zmin + (nz-1)*dz
+            elif not dz and not nz:
+                # Default
+                nz = 100
+                
+            if dr and nr:
+                rmax = rmin + (nr-1)*dr
+            elif dr and not nr:
+                nr = int((rmax-rmin)/dr)+1
+                rmax = rmin + (nr-1)*dr           
+            elif not dr and not nr:
+                # Default
+                nr = 100
+    
+            FM = interpolate2d(
+                self,
+                zmin=zmin*fac, zmax=zmax*fac, nz=nz,
+                rmin=rmin*fac, rmax=rmax*fac, nr=nr,
+                return_fieldmesh=True
+            )
+
+        elif self.geometry == 'rectangular':
+            # Various input possibilities for the grid
+            if dx and nx:
+                xmax = xmin + (nx-1)*dx
+            elif dx and not nx:
+                nx = int((xmax-xmin)/dx)+1
+                xmax = xmin + (nx-1)*dx
+            elif not dx and not nx:
+                # Default
+                nx = 100
+                
+            if dy and ny:
+                ymax = ymin + (ny-1)*dy
+            elif dy and not ny:
+                ny = int((ymax-ymin)/dy)+1
+                ymax = ymin + (ny-1)*dy           
+            elif not dy and not ny:
+                # Default
+                ny = 100
+    
+            FM = interpolate2d(
+                self,
+                xmin=xmin*fac, xmax=xmax*fac, nx=nx,
+                ymin=ymin*fac, ymax=ymax*fac, ny=ny,
+                return_fieldmesh=True
+            )
+
+        else:
+            raise ValueError(f'Unknown geometry: {self.geometry}!')
         
         return FM        
         
-    def interpolate(self, x1min=-1000, x1max=1000, nx1=100, x2min=0, x2max=0, nx2=1):
+    def interpolate(self, 
+                    zmin=-1000, zmax=1000, nz=100,
+                    rmin=-1000, rmax=1000, nr=100, 
+                    xmin=-1000, xmax=1000, nx=100,
+                    ymin=-1000, ymax=1000, ny=100):
         """
         Interpolates field over a grid. 
+        - Uses z and r coordinates for cylindrical geometry
+        - Uses x and y coordinates for rectangular geometry
         """
-    
-        t7data = interpolate2d(
-            self,
-            x1min=x1min, x1max=x1max, nx1=nx1,
-            x2min=x2min, x2max=x2max, nx2=nx2
-        )
+
+
+        if self.geometry == 'cylindrical':  
+            interp_data = interpolate2d(self,
+                                        rmin=rmin, rmax=rmax, nr=nr,
+                                        zmin=zmin, zmax=zmax, nz=nz)
+
+        elif  self.geometry == 'rectangular':
+            interp_data = interpolate2d(self,
+                                        xmin=xmin, xmax=xmax, nx=nx,
+                                        ymin=ymin, ymax=ymax, ny=ny)
+
+        else:
+            raise ValueError(f'Unknown geometry: {self.geometry}!')
         
-        return t7data
+        
+        return interp_data
 
     def run(self):
         """

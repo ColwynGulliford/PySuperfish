@@ -17,8 +17,10 @@ def get_t7(path):
 
 
 def interpolate2d(sf,
-                  x1min=-1000, x1max=1000, nx1=100,
-                  x2min=-1000, x2max=1000, nx2=100,
+                  zmin=None, zmax=None, nz=None,
+                  rmin=None, rmax=None, nr=None,
+                  xmin=None, xmax=None, nx=None,
+                  ymin=None, ymax=None, ny=None,
                   return_fieldmesh=False):
     """
     
@@ -36,24 +38,44 @@ def interpolate2d(sf,
     """
 
     if sf.geometry == 'cylindrical':
+
+        assert xmin is None, f'Input parameter xmin inconsistent with {sf.geometry} geometry'
+        assert xmax is None, f'Input parameters xmax inconsistent with {sf.geometry} geometry'
+        assert nx is None, f'Input parameters nx inconsistent with {sf.geometry} geometry'
+
+        assert ymin is None, f'Input parameter ymin inconsistent with {sf.geometry} geometry'
+        assert ymax is None, f'Input parameters ymax inconsistent with {sf.geometry} geometry'
+        assert ny is None, f'Input parameters ny inconsistent with {sf.geometry} geometry'
+
         return interpolate_cylindrical(sf,
-                                       zmin=x1min, zmax=x1max, nz=nx1,
-                                       rmin=x2min, rmax=x2max, nr=nx2, 
+                                       zmin=zmin, zmax=zmax, nz=nz,
+                                       rmin=rmin, rmax=rmax, nr=nr, 
                                        return_fieldmesh=return_fieldmesh)
         
-    elif sf.geometry == 'rectangular':
-        return interpolate_xy(sf, 
-                              xmin=x1min, xmax=x1max, nx=nx1,
-                              ymin=x2min, ymax=x2max, ny=nx2,
-                              return_fieldmesh=return_fieldmesh)
-
         
+    elif sf.geometry == 'rectangular':
+
+        assert rmin is None, f'Input parameter rmin inconsistent with {sf.geometry} geometry'
+        assert rmax is None, f'Input parameters rmax inconsistent with {sf.geometry} geometry'
+        assert nr is None, f'Input parameters nr inconsistent with {sf.geometry} geometry'
+
+        assert zmin is None, f'Input parameter zmin inconsistent with {sf.geometry} geometry'
+        assert zmax is None, f'Input parameters zmax inconsistent with {sf.geometry} geometry'
+        assert nz is None, f'Input parameters nz inconsistent with {sf.geometry} geometry'
+
+        return interpolate_xy(sf, 
+                              xmin=xmin, xmax=xmax, nx=nx,
+                              ymin=ymin, ymax=ymax, ny=ny,
+                              return_fieldmesh=return_fieldmesh)        
     
 
 def interpolate_xy(sf, 
                    xmin=-1000, xmax=1000, nx=100,
                    ymin=-1000, ymax=1000, ny=200,
                    return_fieldmesh=False):
+
+    assert xmin is not None and xmax is not None and nx is not None
+    assert ymin is not None and ymax is not None and ny is not None
 
     problem = sf.problem 
     
@@ -201,6 +223,9 @@ def interpolate_cylindrical(sf,
     
     
     """
+
+    assert zmin is not None and zmax is not None and nz is not None
+    assert rmin is not None and rmax is not None and nr is not None
     
     problem = sf.problem 
     
