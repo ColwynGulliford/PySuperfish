@@ -145,18 +145,30 @@ Force1MVperMeter=No""")
             break
 
     columns = lines[index+2].split()
-    units = lines[index+3].split()
+    units = [u.replace('(', '').replace(')', '') for u in lines[index+3].split()]
+
+    if 'Ex' in columns and 'Ey' in columns:
+        field_x_str = 'Ex'
+        field_y_str = 'Ey'
+        
+    elif 'Bx' in columns and 'By' in columns:
+        field_x_str = 'Bx'
+        field_y_str = 'By'
+    else:
+        raise ValueError('Unknown fields')
+        
 
     data = np.loadtxt(outsf7_file, comments='#', skiprows=index+4)
 
     nx, ny = x_inc+1, y_inc+1
 
-    Ex = data[:, columns.index('Ex')].reshape(nx, ny, order='F').T
-    Ey = data[:, columns.index('Ey')].reshape(nx, ny, order='F').T
+    field_x = data[:, columns.index(field_x_str)].reshape(nx, ny, order='F').T
+    field_y = data[:, columns.index(field_y_str)].reshape(nx, ny, order='F').T
 
     dat = {'geometry': sf.geometry, 'problem': sf.problem, 
-           'xmin': xmin, 'xmax': xmax, 'nx': x_inc+1, 'Ex': Ex,
-           'ymin': ymin, 'ymax': ymax, 'ny': y_inc+1, 'Ey': Ey}
+           'xmin': xmin, 'xmax': xmax, 'nx': x_inc+1, field_x_str: field_x,
+           'ymin': ymin, 'ymax': ymax, 'ny': y_inc+1, field_y_str: field_y,
+           'units': {columns[ii]: units[ii] for ii in range(len(columns)) }}
 
     return dat
 

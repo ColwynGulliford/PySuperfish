@@ -36,20 +36,62 @@ def add_t7data_to_axes(t7data, ax, field='E', cmap=None, vmin=1e-19, scale=1):
     
     return ax
 
-def add_sf7_data_to_axes(sf7_data, ax, field='E', cmap=None, vmin=1e-19, scale=1):
+def add_sf7_data_to_axes(sf7_data, ax, cmap=None, vmin=1e-19, scale=1, field=None, return_figure=None):
 
     extent = [sf7_data[k]*scale for k in ('xmin', 'xmax', 'ymin', 'ymax')]
 
     if not cmap:
         cmap = CMAP0
+
+    # If no field component is specified, use magnitude of the field
+    if field is None:  
         
-    if field in ('E', 'B') and field not in sf7_data:
-        data = np.hypot(sf7_data[field+'x'], sf7_data[field+'y'])
+        if ('Ex' in sf7_data and 'Ey' in sf7_data) or ('Er' in sf7_data and 'Ez' in sf7_data):
+            field = '|E|'
+            
+        elif ('Bx' in sf7_data and 'By' in sf7_data) or ('Br' in sf7_data and 'Bz' in sf7_data):
+            field = '|B|'
+
+        else:
+            raise ValueError('Could not locate field type')
+        
+    if field in ('|E|', '|B|') and field not in sf7_data:
+        data = np.hypot(sf7_data[field.replace('|', '')+'x'], sf7_data[field.replace('|', '')+'y'])
     else:
         data = sf7_data[field]
+
+    max_field = data.max()
         
     
     ax.imshow(np.flipud(data), extent=extent, cmap=cmap, vmin=vmin )
+
+    # Legend units
+    field_unit = sf7_data['units'][field]
+    
+    # Tweak for convenience
+    if field_unit=='(V/m)' and max_field >1e6:
+        sc = 1e-6
+        field_unit='(MV/m)'
+    elif field_unit=='(V/cm)' and max_field >1e4:
+        sc = 1e-4
+        field_unit='(MV/m)'        
+        
+    else:
+        sc = 1
+
+
+    fig = plt.gcf()
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    
+    # Add legend
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=max_field*sc)
+    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
+                 cax=cax, 
+                 orientation='vertical', label=f'{field} ({field_unit})', ax=ax)             
+    
+    if return_figure:
+        return fig
     
     return ax
 
@@ -138,8 +180,7 @@ def plot_wall(wall_segments,
               cmap=None,
               ax = None,
               conv=1,
-              return_figure=False,
-              
+              return_figure=False,     
               **kwargs):
     """
     Plots the wall from wall segments.
@@ -216,11 +257,11 @@ def plot_wall(wall_segments,
         
     else:
         sc = 1
-     
+    
     # Add legend
     norm = matplotlib.colors.Normalize(vmin=0, vmax=max_field*sc)
     fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
-             cax=cax, orientation='vertical', label=f'|{field}| max {field_unit}')             
+                 cax=cax, orientation='vertical', label=f'|{field}| max {field_unit}', ax=ax)             
     
     if return_figure:
         return fig
