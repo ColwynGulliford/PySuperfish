@@ -346,7 +346,7 @@ class Superfish:
         # Look for key word in automesh file that turns on cylindrical symmetry
         self.input['geometry'] = None
         for line in self.input['automesh']:
-            if 'icylin=1' in line.replace(' ', ''):
+            if 'icylin=1' in line.replace(' ', '').lower():
                 self.input['geometry'] = 'cylindrical'
         if self.input['geometry'] is None:
             self.input['geometry'] = 'rectangular'
