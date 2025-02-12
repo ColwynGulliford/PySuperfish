@@ -60,10 +60,10 @@ def add_sf7_data_to_axes(sf7_data, ax, cmap=None, vmin=1e-19, scale=1, field=Non
     else:
         data = sf7_data[field]
 
-    max_field = data.max()
+    min_field, max_field = data.min(), data.max()
         
     
-    ax.imshow(np.flipud(data), extent=extent, cmap=cmap, vmin=vmin )
+    ax.imshow(data.T, extent=extent, cmap=cmap, vmin=vmin, origin='lower')
 
     # Legend units
     field_unit = sf7_data['units'][field]
@@ -85,7 +85,7 @@ def add_sf7_data_to_axes(sf7_data, ax, cmap=None, vmin=1e-19, scale=1, field=Non
     cax = divider.append_axes('right', size='5%', pad=0.05)
     
     # Add legend
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=max_field*sc)
+    norm = matplotlib.colors.Normalize(vmin=min_field*sc, vmax=max_field*sc)
     fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
                  cax=cax, 
                  orientation='vertical', label=f'{field} ({field_unit})', ax=ax)             

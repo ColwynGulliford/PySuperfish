@@ -144,7 +144,7 @@ Force1MVperMeter=No""")
             index = ii
             break
 
-    print(x_inc+1, y_inc+1)
+    #print(x_inc+1, y_inc+1)
     
     columns = lines[index+2].split()
     units = [u.replace('(', '').replace(')', '') for u in lines[index+3].split()]
@@ -164,8 +164,8 @@ Force1MVperMeter=No""")
 
     nx, ny = x_inc+1, y_inc+1
 
-    field_x = data[:, columns.index(field_x_str)].reshape(nx, ny, order='F').T
-    field_y = data[:, columns.index(field_y_str)].reshape(nx, ny, order='F').T
+    field_x = data[:, columns.index(field_x_str)].reshape(nx, ny, order='F')
+    field_y = data[:, columns.index(field_y_str)].reshape(nx, ny, order='F')
 
     dat = {'geometry': sf.geometry, 'problem': sf.problem, 
            'xmin': xmin, 'xmax': xmax, 'nx': x_inc+1, field_x_str: field_x,
