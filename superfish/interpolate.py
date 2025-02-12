@@ -90,7 +90,7 @@ End"""
     elif problem == 'poisson':
         F=f"""Grid
 {xmin} {ymin} {xmax} {ymax}
-{ny-1} {nx-1}
+{nx-1} {ny-1}
 End"""
     else:
         raise ValueError(f'unknowm problem: {problem}')
@@ -144,6 +144,8 @@ Force1MVperMeter=No""")
             index = ii
             break
 
+    print(x_inc+1, y_inc+1)
+    
     columns = lines[index+2].split()
     units = [u.replace('(', '').replace(')', '') for u in lines[index+3].split()]
 
