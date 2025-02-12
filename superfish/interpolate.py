@@ -311,7 +311,7 @@ Force1MVperMeter=No""")
         else:
             type = 'magnetic'
         d =  parse_poisson_t7(t7file, 'cylindrical', type=type)
-    print(d)
+
     return d
 
     

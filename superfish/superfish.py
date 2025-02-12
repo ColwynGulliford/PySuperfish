@@ -194,11 +194,11 @@ class Superfish:
         
         return FM        
         
-    def interpolate(self, 
-                    zmin=-1000, zmax=1000, nz=100,
-                    rmin=-1000, rmax=1000, nr=100, 
-                    xmin=-1000, xmax=1000, nx=100,
-                    ymin=-1000, ymax=1000, ny=100):
+    def interpolate(self,
+                    zmin=None, zmax=None, nz=None,
+                    rmin=None, rmax=None, nr=None, 
+                    xmin=None, xmax=None, nx=None,
+                    ymin=None, ymax=None, ny=None):
         """
         Interpolates field over a grid. 
         - Uses z and r coordinates for cylindrical geometry
@@ -207,11 +207,23 @@ class Superfish:
 
 
         if self.geometry == 'cylindrical':  
+
+            error_str = 'Inncorrect keyword arguments for cylindrical geometry, please use "[z, r]min", "[z, r]max", "n[z, r]"'
+
+            assert xmin is None and xmax is None and nx is None, error_str
+            assert ymin is None and ymax is None and ny is None, error_str
+            
             interp_data = interpolate2d(self,
                                         rmin=rmin, rmax=rmax, nr=nr,
                                         zmin=zmin, zmax=zmax, nz=nz)
 
         elif  self.geometry == 'rectangular':
+
+            error_str = 'Inncorrect keyword arguments for rectangular geometry, please use "[x, y]min", "[x, y]max", "n[x, y]"'
+
+            assert rmin is None and rmax is None and nr is None, error_str
+            assert zmin is None and zmax is None and nz is None, error_str
+            
             interp_data = interpolate2d(self,
                                         xmin=xmin, xmax=xmax, nx=nx,
                                         ymin=ymin, ymax=ymax, ny=ny)
@@ -219,6 +231,7 @@ class Superfish:
         else:
             raise ValueError(f'Unknown geometry: {self.geometry}!')
         
+        self.output['sf7'] = interp_data
         
         return interp_data
 
